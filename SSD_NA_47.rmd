@@ -1,0 +1,1309 @@
+
+# **SSD Assignment**
+
+## **BY Sandeep Tyagi**
+
+## **24BM6JP47**
+
+## Dataset-1 mtcars
+
+## *Univariate Analysis*
+
+**1. Data Overview**
+
+```{r}
+# Load the dataset
+data(mtcars)
+
+# Display the structure of the dataset
+str(mtcars)
+
+# Number of observations and variables
+num_observations <- nrow(mtcars)
+num_variables <- ncol(mtcars)
+cat("Number of observations:", num_observations, "\n")
+cat("Number of variables:", num_variables, "\n")
+```
+
+**2. Summary Statistics**
+
+```{r}
+# Choose a numerical variable
+variable <- mtcars$mpg
+
+# Calculate summary statistics
+mean_value <- mean(variable)
+median_value <- median(variable)
+std_dev <- sd(variable)
+min_value <- min(variable)
+max_value <- max(variable)
+
+# Display the statistics
+cat("Mean:", mean_value, "\n")
+cat("Median:", median_value, "\n")
+cat("Standard Deviation:", std_dev, "\n")
+cat("Minimum:", min_value, "\n")
+cat("Maximum:", max_value, "\n")
+```
+
+The mean (20.09) suggests that, on average, cars in the dataset achieve around 20 miles per gallon. The median (19.2) being slightly lower than the mean indicates a slight right skew, meaning some cars have exceptionally high mileage. The standard deviation (6.03) shows that most cars' mileage deviates by about 6 miles per gallon from the mean. The range, from 10.4 (minimum) to 33.9 (maximum), reflects a wide variation in fuel efficiency across the cars.
+
+**3. Distribution Visualization**
+```{r}
+# Create a histogram for the chosen variable (mpg)
+hist(variable, main = "Histogram of mpg", xlab = "Miles Per Gallon", col = "blue", border = "white")
+
+# Create a boxplot for the chosen variable (mpg)
+boxplot(variable, main = "Boxplot of mpg", ylab = "Miles Per Gallon", col = "red", horizontal = TRUE)
+
+# Insights on distribution and potential outliers
+summary(variable)
+```
+
+**Shape of the Distribution:**
+
+The histogram shows a slightly right-skewed distribution, with most values concentrated between 15 and 25 miles per gallon. A smaller number of cars have very high mileage (above 30), contributing to the skewness.
+
+**Potential Outliers:**
+
+The boxplot does not indicate any significant outliers, as no data points fall outside the whiskers. The spread is fairly uniform, suggesting a consistent range for the mpg Values.**
+
+**4. Categorical Variable Analysis**
+
+```{r}
+# Choose a categorical variable
+categorical_variable <- mtcars$cyl
+
+# Create a bar plot for the distribution of the categorical variable
+barplot(table(categorical_variable), 
+        main = "Distribution of Cylinder Counts",
+        xlab = "Number of Cylinders", 
+        ylab = "Frequency", 
+        col = "green", 
+        border = "white")
+
+# Insights on the plot
+cat("Distribution of cylinder counts:\n")
+print(table(categorical_variable))
+```
+
+**Insights**
+
+The dataset is dominated by high-powered cars with 8 cylinders, reflecting a preference for performance-oriented vehicles. However, a significant number of 4-cylinder cars suggest a presence of fuel-efficient options. Cars with 6 cylinders are less common, indicating they might represent a balance between power and efficiency but are less favored. From the bar plot, it can be observed that the data is bimodal, with peaks for 4 and 8 cylinders.
+
+## *Multivariate Analysis*
+
+**5. Correlation Analysis**
+
+```{r}
+# Select two numerical variables (mpg and hp)
+correlation <- cor(mtcars$mpg, mtcars$hp, method = "pearson")
+
+# Display the Pearson correlation coefficient
+cat("Pearson Correlation Coefficient between mpg and hp:", correlation, "\n")
+```
+
+The Pearson correlation coefficient of -0.776 indicates a strong negative relationship between mpg and hp. This means that as horsepower (hp) increases, fuel efficiency (mpg) tends to decrease significantly. The strength of the correlation suggests that horsepower is a major factor affecting mileage, with higher-powered cars being less fuel-efficient.
+
+**6. Scatter Plot Visualization**
+
+```{r}
+# Scatter plot with trend line
+plot(mtcars$hp, mtcars$mpg, 
+     main = "Scatter Plot of mpg vs hp", 
+     xlab = "Horsepower (hp)", 
+     ylab = "Miles Per Gallon (mpg)", 
+     pch = 16, col = "blue")
+abline(lm(mpg ~ hp, data = mtcars), col = "red", lwd = 2) # Add trend line
+```
+
+**Interpretation:**
+
+The scatter plot will likely show a downward trend, indicating that higher horsepower is associated with lower fuel efficiency (mpg). The trend line further confirms this inverse relationship.
+
+**7. Multiple Regression**
+
+```{r}
+# Fit a linear regression model
+model <- lm(mpg ~ hp + wt, data = mtcars)
+
+# Display the summary of the model
+summary(model)
+```
+
+**Insights and Interpretation:**
+
+**Intercept (37.227):**
+
+When both horsepower (hp) and weight (wt) are zero (not realistic for cars), the predicted mpg is 37.227. While not directly meaningful, it sets the baseline for the model.
+
+**hp Coefficient (-0.031):**
+
+For every 1-unit increase in horsepower, the mpg decreases by 0.031, assuming weight remains constant. This highlights the negative impact of higher horsepower on fuel efficiency.
+
+**wt Coefficient (-3.878):**
+
+For every 1-unit increase in weight (in 1000 lbs), the mpg decreases by 3.878, assuming horsepower remains constant. This indicates that weight has a much larger negative impact on mileage compared to horsepower.
+
+**Significance of Variables:**
+
+Both hp and wt have p-values < 0.05, meaning they are statistically significant predictors of mpg.
+The t-values (absolute values > 2) confirm the strong influence of these variables on the model.
+
+**8. Model Diagnostics**
+
+```{r}
+# Load necessary libraries
+library(ggplot2)
+
+# Fit the linear regression model
+data(mtcars)
+model <- lm(mpg ~ hp + wt, data = mtcars)
+
+# Extract model diagnostics
+residuals <- resid(model)
+fitted_values <- fitted(model)
+standardized_residuals <- rstandard(model)
+leverage <- hatvalues(model)
+cooks_distance <- cooks.distance(model)
+
+# 1. Residuals vs Fitted
+ggplot(data = NULL, aes(x = fitted_values, y = residuals)) +
+  geom_point(color = "blue", size = 2) +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "red") +
+  labs(title = "Residuals vs Fitted", x = "Fitted Values", y = "Residuals") +
+  theme_minimal()
+
+# 2. Q-Q Plot
+ggplot(data = NULL, aes(sample = residuals)) +
+  stat_qq() +
+  stat_qq_line(color = "red") +
+  labs(title = "Normal Q-Q Plot", x = "Theoretical Quantiles", y = "Standardized Residuals") +
+  theme_minimal()
+
+# 3. Scale-Location Plot
+ggplot(data = NULL, aes(x = fitted_values, y = sqrt(abs(standardized_residuals)))) +
+  geom_point(color = "green", size = 2) +
+  geom_smooth(method = "loess", color = "red", se = FALSE) +
+  labs(title = "Scale-Location Plot", x = "Fitted Values", y = "√|Standardized Residuals|") +
+  theme_minimal()
+
+# 4. Residuals vs Leverage
+ggplot(data = NULL, aes(x = leverage, y = standardized_residuals)) +
+  geom_point(color = "purple", size = 2) +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "red") +
+  labs(title = "Residuals vs Leverage", x = "Leverage", y = "Standardized Residuals") +
+  theme_minimal() +
+  geom_smooth(method = "loess", color = "blue", se = FALSE) +
+  geom_text(aes(label = ifelse(cooks_distance > 4 / nrow(mtcars), rownames(mtcars), "")),
+            hjust = -0.1, color = "black", size = 3)
+
+```
+
+**1. Residuals vs Fitted Plot**
+
+Purpose: This plot checks for non-linearity and constant variance (homoscedasticity).
+
+Interpretation:
+
+a. Residuals appear randomly scattered around the horizontal line at zero, which is good, indicating no severe non-linearity.
+
+b. However, some patterns might suggest heteroscedasticity (uneven variance), especially at the extremes of fitted values.
+
+**2. Q-Q Plot**
+
+Purpose: Examines whether residuals follow a normal distribution.
+
+Interpretation:
+
+Most points lie close to the red line, suggesting approximate normality.
+Some deviation is observed at the tails, indicating potential outliers or slight non-normality.
+
+**3. Scale-Location Plot**
+
+Purpose: Assesses the spread of residuals (homoscedasticity) across fitted values.
+
+Interpretation:
+
+Residual variance appears relatively consistent but shows a slight increasing trend at higher fitted values. This suggests possible mild heteroscedasticity.
+
+**4. Residuals vs Leverage Plot**
+
+Purpose: Detects influential points that could disproportionately affect the model.
+
+Interpretation:
+
+A few points, such as those labeled "Chrysler Imperial" and "Maserati", have high leverage, indicating they have a strong influence on the model. Cook’s distance indicates these points may warrant further investigation for their impact.
+
+## *Advance Analysis*
+
+** 9. Principal Component Analysis (PCA)**
+
+```{r}
+# Load required library
+library(ggplot2)
+library(factoextra)
+
+# Select numerical variables from mtcars
+numerical_data <- mtcars[, sapply(mtcars, is.numeric)]
+
+# Perform PCA
+pca_result <- prcomp(numerical_data, center = TRUE, scale. = TRUE)
+
+# Summary of PCA to show explained variance
+summary(pca_result)
+```
+```{r}
+# Scree plot to visualize explained variance
+fviz_eig(pca_result, addlabels = TRUE, barfill = "skyblue", barcolor = "black") +
+  ggtitle("Scree Plot") +
+  theme_minimal()
+```
+
+**Interpretation of the Scree Plot:**
+
+**Variance Distribution:**
+
+PC1 explains 60.1% of the variance, capturing a major portion of the data variability.
+
+PC2 adds 24.1%, bringing the cumulative variance explained to 84.2%.
+
+PC3 explains 5.7%, increasing the cumulative variance to approximately 89.9%.
+
+This indicates that the first three principal components together capture nearly 90% of the total variance in the data.
+
+**Elbow Point:**
+
+The "elbow" point, where the scree plot starts to flatten significantly, is PC3.
+After PC3, the additional principal components contribute very little variance (e.g., PC4 explains 2.5%, PC5 explains 2%, etc.), which suggests diminishing returns for including more components.
+
+**Dimensionality Reduction:**
+
+By selecting PC1, PC2, and PC3, you retain nearly 90% of the data's information.
+While PC1 and PC2 alone provide a solid summary of the dataset, including PC3 might capture some finer details or patterns in the data that could be important for more nuanced analyses.
+
+**10. PCA Interpretation**
+
+**Visualize PCA Results (Biplot)**
+```{r}
+# Load necessary library
+library(ggplot2)
+library(ggfortify)
+
+# Perform PCA on the numerical variables of the mtcars dataset
+pca_result <- prcomp(mtcars, center = TRUE, scale. = TRUE)
+
+# Create a biplot using ggfortify
+autoplot(pca_result, 
+         data = mtcars, 
+         colour = 'cyl',  # Colour points by the number of cylinders
+         loadings = TRUE, 
+         loadings.label = TRUE, 
+         loadings.label.size = 3) +
+  ggtitle("PCA Biplot for mtcars Dataset") +
+  theme_minimal()
+```
+
+**Interpretation of the Biplot**
+
+**Axes and Principal Components:**
+
+The x-axis represents the first principal component (PC1), which captures the largest variation (60.1%).
+
+The y-axis represents the second principal component (PC2), capturing an additional 24.1% of variation.
+
+Together, PC1 and PC2 explain 84.2% of the total variance in the data.
+
+**Loadings (Arrows):**
+
+The arrows indicate the contribution of each variable to PC1 and PC2.
+Longer arrows mean the variable has a stronger influence on the principal components.
+
+**For instance:**
+
+hp, wt, and disp are positively correlated and strongly influence PC1.
+mpg is negatively correlated with PC1.
+
+Variables pointing in similar directions (e.g., disp and wt) are positively correlated, while those in opposite directions (e.g., mpg vs. hp) are negatively correlated.
+
+**Patterns and Groupings:**
+
+Cars with fewer cylinders (e.g., 4 cylinders) are clustered towards higher values of PC1 and PC2, indicating lower weight, horsepower, and displacement but higher mileage.
+Cars with more cylinders (e.g., 6 or 8 cylinders) are clustered in the opposite direction, associated with higher weight, horsepower, and displacement but lower mileage.
+
+**Insights:**
+
+**Trade-offs:** The biplot reveals clear trade-offs between fuel efficiency (mpg) and engine performance metrics (hp, disp).
+
+**Group Separation:** The separation of cars by the number of cylinders highlights differences in their attributes, with distinct groups for 4-cylinder, 6-cylinder, and 8-cylinder cars.
+
+## *Conclusion*
+
+The analysis of the mtcars dataset offered a comprehensive understanding of car attributes and their interrelationships, shedding light on both individual characteristics and broader trends.
+
+**Univariate Analysis:**
+
+Diversity in Attributes: The dataset captures a wide range of car features, from highly fuel-efficient models to power-focused vehicles. The variability across numerical and categorical variables like mpg and cyl highlights the dataset's versatility.
+
+Outliers and Variations: Distribution visualizations revealed the presence of outliers in variables such as mpg, hinting at niche or extreme car models that stand apart from the general trends.
+
+**Multivariate Analysis:**
+
+Fuel Efficiency Trade-Offs: A clear inverse relationship emerged between fuel efficiency (mpg) and both horsepower (hp) and weight (wt). This reinforces a well-known engineering trade-off: as cars are designed for higher performance or heavier builds, efficiency typically declines.
+
+Interconnected Attributes: The correlation analysis and regression model highlighted how closely car features are interlinked. For example, cars with high horsepower are often heavier, both of which significantly impact mileage.
+
+Segmented Groups: Categorical analysis of cyl and gear showed distinct clusters in the automotive market. Cars with 4 cylinders are more likely fuel-efficient, while 8-cylinder cars cater to power-driven preferences.
+
+**Principal Component Analysis (PCA):**
+
+Simplified Relationships: PCA revealed that the complexity of the dataset could be reduced to just two or three principal components without losing significant information. This aids in identifying core patterns without being overwhelmed by details.
+
+Market Segmentation: The biplot highlighted natural groupings among cars, aligning with their performance and efficiency metrics. These clusters could help in market positioning or understanding consumer preferences.
+
+**Key Insights:**
+
+Performance vs. Efficiency: Cars cannot excel equally in power and fuel efficiency, underscoring the need for trade-offs based on target market demands.
+
+Segmentation by Features: The dataset divides naturally into distinct categories, with clear implications for manufacturers targeting different consumer needs—efficiency, performance, or balance.
+
+Dimensional Reduction for Simplification: PCA emphasized that despite the dataset’s complexity, a few core attributes define most of the variability, making analysis and decision-making easier.
+
+
+## Dataset-2 Boston housing data 
+
+## Univariate Analysis
+
+**1. Data Overview**
+
+```{r}
+# Load the MASS library
+library(MASS)
+
+# Load the Boston dataset
+data("Boston")
+
+# Display the structure of the dataset
+str(Boston)
+
+# Number of observations and variables
+num_observations <- nrow(Boston)  # Number of rows (observations)
+num_variables <- ncol(Boston)    # Number of columns (variables)
+
+# Print the results
+cat("Number of observations:", num_observations, "\n")
+cat("Number of variables:", num_variables, "\n")
+```
+
+The **`Boston` dataset** contains **506 observations** and **14 variables** related to housing prices and socioeconomic factors in Boston. It is widely used for regression and statistical modeling tasks.
+
+**Key Variables**
+
+1. **`crim`**: Per capita crime rate.  
+2. **`zn`**: Proportion of residential land zoned for large lots.  
+3. **`indus`**: Proportion of non-retail business acres.  
+4. **`chas`**: Charles River dummy variable (1 = bounds river).  
+5. **`nox`**: Nitric oxide concentration (pollution levels).  
+6. **`rm`**: Average number of rooms per dwelling.  
+7. **`age`**: Proportion of units built before 1940.  
+8. **`dis`**: Distance to employment centers.  
+9. **`rad`**: Index of accessibility to highways.  
+10. **`tax`**: Property tax rate.  
+11. **`ptratio`**: Pupil-teacher ratio in schools.  
+12. **`black`**: Weighted proportion of Black residents.  
+13. **`lstat`**: % lower-status population.  
+14. **`medv`**: Median home value (in $1000s).
+
+**2. Summary Statistics**
+
+```{r}
+# Load the MASS package
+library(MASS)
+
+# Load the Boston dataset
+data("Boston")
+
+# Choose the variable 'rm' (average number of rooms per dwelling)
+variable <- Boston$rm
+
+# Calculate summary statistics
+mean_value <- mean(variable)
+median_value <- median(variable)
+sd_value <- sd(variable)
+min_value <- min(variable)
+max_value <- max(variable)
+
+# Display the results
+cat("Summary Statistics for 'rm' (Average Number of Rooms):\n")
+cat("Mean:", mean_value, "\n")
+cat("Median:", median_value, "\n")
+cat("Standard Deviation:", sd_value, "\n")
+cat("Minimum:", min_value, "\n")
+cat("Maximum:", max_value, "\n")
+```
+
+The average number of rooms per dwelling (rm) is approximately 6.28, with a median of 6.21, indicating a fairly symmetric distribution. The standard deviation of 0.70 suggests moderate variability, while the number of rooms ranges from a minimum of 3.56 to a maximum of 8.78
+
+**3. Distribution Visualization**
+
+```{r}
+# Load necessary library for visualization
+library(ggplot2)
+
+# Create a histogram for 'rm' (average number of rooms)
+ggplot(Boston, aes(x = rm)) +
+  geom_histogram(binwidth = 0.5, fill = "lightblue", color = "black", alpha = 0.7) +
+  labs(title = "Histogram of Average Number of Rooms ('rm')", x = "Average Number of Rooms", y = "Frequency")
+
+# Create a boxplot for 'rm' (average number of rooms)
+ggplot(Boston, aes(y = rm)) +
+  geom_boxplot(fill = "lightgreen", color = "black") +
+  labs(title = "Boxplot of Average Number of Rooms ('rm')", y = "Average Number of Rooms")
+```
+
+**Histogram Interpretation**
+
+The histogram still shows a slightly right-skewed distribution, where most houses have between 6-7 rooms, but there are a few homes with fewer or more rooms.
+
+**Boxplot Interpretation**
+
+The boxplot reveals:
+
+Median: Around 6.21 rooms.
+
+IQR: Most homes have between 5.5 and 7 rooms.
+
+Outliers: There are a few outliers, indicating that some homes have either significantly fewer or more rooms compared to the rest of the dataset.
+
+**4. Categorical Variable Analysis**
+
+```{r}
+# Load necessary library for visualization
+library(ggplot2)
+
+# Create a bar plot for 'chas' (Charles River dummy variable)
+ggplot(Boston, aes(x = factor(chas))) +
+  geom_bar(fill = "lightblue", color = "black") +
+  labs(title = "Distribution of Charles River Proximity ('chas')", x = "Proximity to Charles River", y = "Count") +
+  scale_x_discrete(labels = c("No", "Yes"))
+```
+
+**Insights from the Plot**
+
+Proximity to Charles River (chas):
+
+1. The bar plot shows the distribution of homes near the Charles River (1 = yes, 0 = no).
+
+2.There are two bars: one for homes that do not bound the Charles River and one for those that do.
+
+3. Most of the homes do not bound the river, while fewer homes are located near the river, suggesting that proximity to the Charles River is not a dominant feature in the dataset.
+
+### Multivariate Analysis
+
+**5. Correlation Analysis**
+
+```{r}
+# Choose two numerical variables: 'rm' (average number of rooms) and 'medv' (median home value)
+correlation_value <- cor(Boston$rm, Boston$medv)
+
+# Display the Pearson correlation coefficient
+correlation_value
+```
+
+For rm (average number of rooms) and medv (median home value), a positive correlation (e.g., 0.7) would suggest that as the number of rooms increases, the home value tends to increase as well.
+
+**6. Scatter Plot Visualization**
+
+```{r}
+# Load necessary library for visualization
+library(ggplot2)
+
+# Create a scatter plot with a trend line for 'rm' (average number of rooms) and 'medv' (median home value)
+ggplot(Boston, aes(x = rm, y = medv)) +
+  geom_point(color = "blue", alpha = 0.6) +  # Scatter points
+  geom_smooth(method = "lm", color = "red") +  # Trend line (linear regression)
+  labs(title = "Scatter Plot of Average Number of Rooms vs. Median Home Value",
+       x = "Average Number of Rooms", y = "Median Home Value (in $1000s)")
+```
+
+**Relationship Discussion**
+
+The scatter plot shows the relationship between the average number of rooms (rm) and the median home value (medv).
+
+The trend line (red) indicates a positive linear relationship between the two variables.
+
+Observation: As the number of rooms increases, the median home value tends to increase as well, suggesting that homes with more rooms generally have higher values. This relationship is strong and positive, as indicated by the upward slope of the trend line.
+
+**7. Multiple Regression**
+
+```{r}
+# Fit a multiple linear regression model predicting 'medv' (median home value)
+model <- lm(medv ~ rm + crim + nox + age + dis + rad + tax + ptratio + black + lstat, data = Boston)
+
+# Display the summary of the model
+summary(model)
+```
+
+Here’s a short interpretation of the coefficients from the regression model:
+
+Intercept (37.22): The estimated median home value when all predictor variables are zero (not meaningful in this context but serves as the baseline).
+
+rm (4.06): For each additional room, the median home value increases by approximately $4,061, holding other variables constant.
+
+crim (-0.10): For each unit increase in the crime rate, the median home value decreases by about $0.10.
+
+nox (-17.52): For each one-unit increase in the nitric oxide concentration, the median home value decreases by approximately $17,515.
+
+age (-0.0026): The age of the property has an insignificant effect on median home value (p-value > 0.05).
+
+dis (-1.23): For each additional distance to employment centers, the median home value decreases by about $1,225.
+
+rad (0.30): For each one-unit increase in the highway access index, the median home value increases by about $299.
+
+tax (-0.01): For each unit increase in property tax rate, the median home value decreases by about $10.44.
+
+ptratio (-1.13): For each unit increase in pupil-teacher ratio, the median home value decreases by about $1,125.
+
+black (0.0098): For each increase in the proportion of Black residents, the median home value increases by about $9.83.
+
+lstat (-0.52): For each one-unit increase in the percentage of lower status population, the median home value decreases by about $524.
+
+**8. Model Diagnostics**
+
+```{r}
+# Plot the residuals of the regression model
+par(mfrow = c(2, 2))  # Arrange the plots in a 2x2 grid
+plot(model)
+```
+
+###Interpretation of Diagnostic Plots
+
+####Residuals vs Fitted Values Plot (First Plot):
+
+This plot helps assess homoscedasticity (constant variance of residuals).  
+**Ideal scenario**: Residuals should be randomly scattered around zero without any clear pattern.  
+If there’s a funnel shape or any structure, it suggests **heteroscedasticity**, meaning the variance of the residuals is not constant.
+
+#### Normal Q-Q Plot (Second Plot):
+
+This plot checks the normality of the residuals.  
+**Ideal scenario**: Points should lie close to the diagonal line, indicating that the residuals are normally distributed.  
+If the points deviate significantly from the line, it suggests that the residuals are **not normally distributed**, which may affect the validity of the model's statistical inferences.
+
+#### Scale-Location Plot (Third Plot):
+
+This plot also checks for homoscedasticity.  
+**Ideal scenario**: The plot should show a random scatter of points without any trend or pattern.  
+A systematic pattern, such as a cone shape, would indicate **heteroscedasticity**.
+
+#### Residuals vs Leverage Plot (Fourth Plot):
+
+This plot helps identify influential observations that could disproportionately affect the model’s fit.  
+**Ideal scenario**: Most points should be within a reasonable range of leverage, and no points should have an excessively high leverage or large residuals.  
+Points that stand out in the top-right corner could be **influential outliers**.
+
+### Conclusion
+
+- If the residuals show random dispersion, the model is likely a good fit.
+- If the residuals display patterns (e.g., funnel shape or non-linear trends), this could suggest issues like non-linearity or heteroscedasticity.
+- If the Q-Q plot indicates significant deviation from the line, the residuals may not be normally distributed, potentially affecting the reliability of confidence intervals and p-values.
+
+```{r}
+# Select only numerical variables from the Boston dataset
+numerical_data <- Boston[, sapply(Boston, is.numeric)]
+
+# Standardize the numerical data
+numerical_data_scaled <- scale(numerical_data)
+
+# Perform PCA
+pca_result <- prcomp(numerical_data_scaled, center = TRUE, scale. = TRUE)
+
+# View the summary of PCA to get the proportion of variance explained by each component
+summary(pca_result)
+
+# Plot the explained variance (scree plot)
+screeplot(pca_result, main = "Scree Plot", col = "blue", pch = 19)
+```
+
+### Selection of Principal Components
+
+Based on the **Scree Plot** and the **Importance of Components** table, I would choose the first 5 components for the following reasons:
+
+#### Cumulative Proportion:
+The first 5 principal components explain around 80.59% of the total variance (**cumulative proportion = 0.80585**). This is a typical threshold for capturing most of the information in the dataset, usually around 80-90%.
+
+#### Elbow Point:
+From the scree plot (and the cumulative variance), we observe that the explained variance starts to level off after the first 4-5 components. Components beyond this point contribute less to the total variance and are less likely to provide significant additional information.
+
+#### Diminishing Returns:
+After the first 5 components, the explained variance from each additional component drops significantly, with the variance contributions becoming very small (e.g., **PC6** explains only 4.71%).
+
+Thus, I would choose 5 components because they capture the majority of the variance and balance **model simplicity** with **information retention**.
+
+**10. PCA Interpretation**
+
+```{r}
+# Install ggfortify and ggplot2 if not already installed
+
+
+# Load the libraries
+library(ggfortify)
+library(ggplot2)
+
+# Select only numerical variables from the Boston dataset
+numerical_data <- Boston[, sapply(Boston, is.numeric)]
+
+# Standardize the data
+numerical_data_scaled <- scale(numerical_data)
+
+# Perform PCA
+pca_result <- prcomp(numerical_data_scaled, center = TRUE, scale. = TRUE)
+
+# Create the PCA biplot using ggfortify
+autoplot(pca_result, 
+         data = Boston,  # Use the Boston dataset for points
+         colour = 'chas',  # Colour points by the 'chas' variable (categorical)
+         loadings = TRUE, 
+         loadings.label = TRUE, 
+         loadings.label.size = 3) +
+  ggtitle("PCA Biplot for Boston Dataset") + 
+  theme_minimal()  # Apply minimal theme for the plot
+
+
+```
+
+### Conclusion: Summary of Findings
+
+#### Univariate Analysis:
+
+**Distribution and Summary Statistics**:  
+We focused on the `rm` (average number of rooms) variable, finding that its mean is around 6.28 with a median of 6.21, indicating a slight skew toward higher values in the dataset.  
+The standard deviation of 0.70 suggests moderate variability in the number of rooms across different observations. The minimum value is 3.56, and the maximum is 8.78, showing a wide range of housing sizes in the dataset.  
+The histogram indicated a somewhat normal distribution, though a few outliers exist.
+
+#### Multivariate Analysis:
+
+**Correlation Analysis**:  
+A strong negative correlation between `crim` (crime rate) and `rm` (average number of rooms) was observed, indicating that neighborhoods with more rooms tend to have lower crime rates.  
+Similarly, `rm` and `medv` (median value of owner-occupied homes) show a positive correlation, suggesting that homes with more rooms are likely to have higher values.
+
+**Scatter Plot**:  
+The scatter plot revealed a clear positive relationship between `rm` and `medv`. As the average number of rooms increases, the median house value generally increases as well.
+
+**Regression Model**:  
+The regression model highlighted key predictors for median home value (`medv`), such as `rm` (positive), `crim` (negative), and `lstat` (negative), showing that neighborhoods with more rooms, lower crime rates, and higher socioeconomic status tend to have higher housing values.
+
+#### PCA Insights:
+
+Principal Component Analysis (PCA) helped reduce dimensionality, showing that the first few components explain a large portion of the variance in the data.  
+The PCA biplot revealed how variables like `rm`, `crim`, `tax`, and `lstat` drive the main patterns in the data.
+
+#### Overall Insights:
+
+- **Key Variables**: Variables like `rm`, `crim`, `tax`, and `lstat` are crucial in understanding the dynamics of housing values in Boston. The relationship between these variables shows that lower crime rates, more rooms, and better socioeconomic status contribute to higher property values.
+- **Dimensionality**: PCA helped identify the main components explaining the variance in the dataset, and choosing the first 5 components provided a good balance between simplicity and variance explanation.
+- **Outliers and Patterns**: A few outliers were observed in the `rm` variable, suggesting that some properties may be exceptional in terms of size or condition.
+
+## Dataset-3 
+
+** 1. Data Overview**
+
+```{r}
+# Load the Wine dataset
+wine <- read.csv("https://archive.ics.uci.edu/ml/machine-learning-databases/wine/wine.data", header = FALSE)
+
+# Assign column names
+colnames(wine) <- c("Class", "Alcohol", "Malic_Acid", "Ash", "Alcalinity_Ash", 
+                    "Magnesium", "Total_Phenols", "Flavanoids", 
+                    "Nonflavanoid_Phenols", "Proanthocyanins", 
+                    "Color_Intensity", "Hue", "OD280_OD315", "Proline")
+
+# Display structure
+str(wine)
+
+# Count observations and variables
+cat("Number of observations:", nrow(wine), "\n")
+cat("Number of variables:", ncol(wine), "\n")
+```
+
+**2. Summary Statistics**
+
+```{r}
+library(dplyr)
+
+alcohol_stats <- wine |>
+  summarise(
+    Mean = mean(Alcohol),
+    Median = median(Alcohol),
+    SD = sd(Alcohol),
+    Min = min(Alcohol),
+    Max = max(Alcohol)
+  )
+
+print(alcohol_stats)
+
+```
+Summary Statistics for Alcohol Content:
+
+Mean Alcohol Content: 13.00%, aligning with the central tendency seen in the boxplot and histogram.
+
+Median Alcohol Content: 13.05%, slightly higher than the mean, suggesting a slight skew toward higher values.
+
+Standard Deviation (SD): 0.81%, indicating relatively low variability in alcohol levels across samples.
+
+Minimum Alcohol Content: 11.03%, representing the lightest wine in the dataset.
+
+Maximum Alcohol Content: 14.83%, highlighting the strongest wine.
+
+
+**3. Distribution Visualization**
+
+```{r}
+# Histogram and Boxplot for 'Alcohol'
+library(ggfortify)
+library(ggplot2)
+ggplot(wine, aes(x = Alcohol)) +
+  geom_histogram(binwidth = 0.5, fill = "skyblue", color = "black") +
+  ggtitle("Histogram of Alcohol") +
+  theme_minimal()
+
+ggplot(wine, aes(y = Alcohol)) +
+  geom_boxplot(fill = "lightgreen") +
+  ggtitle("Boxplot of Alcohol") +
+  theme_minimal()
+```
+
+Histogram of Alcohol:
+
+The histogram confirms a nearly normal distribution of alcohol content, with the majority of wines having alcohol levels between 12.5 and 13.5%.
+There is a slight skewness toward higher alcohol percentages, indicating a lean towards wines with greater alcohol content.
+
+Boxplot of Alcohol:
+
+The boxplot demonstrates a relatively symmetric distribution of alcohol content.
+The interquartile range (IQR) indicates moderate variability, and there are no visible outliers in the dataset.
+
+**4. Categorical Variable Analysis**
+
+```{r}
+# Bar plot for 'Class'
+ggplot(wine, aes(x = factor(Class))) +
+  geom_bar(fill = "orange") +
+  xlab("Wine Class") +
+  ggtitle("Bar Plot of Wine Classes") +
+  theme_minimal()
+```
+
+Bar Plot of Wine Classes:
+
+The data distribution shows that Class 2 wines are the most frequent, followed by Class 1 and Class 3 wines.
+This suggests Class 2 wines might have greater representation or production in the dataset.
+
+##Multivariate Analysis
+
+**5. Correlation Analysis**
+
+```{r}
+# Calculate the Pearson correlation coefficient between Alcohol and Malic_Acid
+correlation <- cor(wine$Alcohol, wine$Malic_Acid, method = "pearson")
+print(paste("Pearson correlation coefficient between Alcohol and Malic_Acid:", round(correlation, 3)))
+```
+The Pearson correlation coefficient of 0.094 indicates a very weak positive linear relationship between Alcohol and Malic_Acid. This suggests that changes in Alcohol are minimally associated with changes in Malic_Acid.
+
+**6. Scatter Plot Visualization**
+```{r}
+# Load ggplot2 library for visualization
+library(ggplot2)
+
+# Create the scatter plot with a trend line
+ggplot(wine, aes(x = Alcohol, y = Malic_Acid)) +
+  geom_point(color = "blue") +
+  geom_smooth(method = "lm", se = FALSE, color = "red") +
+  labs(title = "Scatter Plot of Alcohol vs Malic Acid",
+       x = "Alcohol",
+       y = "Malic Acid") +
+  theme_minimal()
+```
+
+The scatter plot shows that the data points for Alcohol and Malic_Acid are widely scattered, with no clear pattern or strong trend. The added trend line is nearly flat, confirming the weak linear relationship suggested by the correlation coefficient.
+
+**7. Multiple Regression**
+```{r}
+# Fit a multiple linear regression model
+model <- lm(Alcohol ~ Malic_Acid + Ash, data = wine)
+
+# Display the summary of the model
+summary(model)
+```
+### Interpretation of the Multiple Regression Model:
+
+#### Intercept:
+- The estimated intercept is **11.48551**, indicating that when both `Malic_Acid` and `Ash` are 0, the predicted `Alcohol` level is approximately **11.49**.
+
+#### Coefficients:
+- **Malic_Acid**:  
+  The coefficient is **0.04458**, suggesting that for every one-unit increase in `Malic_Acid`, `Alcohol` increases by **0.0446** units on average, holding `Ash` constant.  
+  However, the p-value (**0.41297**) indicates this effect is **not statistically significant**.
+  
+- **Ash**:  
+  The coefficient is **0.59621**, meaning that for every one-unit increase in `Ash`, `Alcohol` increases by **0.596** units on average, holding `Malic_Acid` constant.  
+  This effect is **statistically significant** (p-value = **0.00772**).
+
+#### Model Fit:
+- **R-squared**: The model explains only **4.84%** of the variability in `Alcohol` levels, indicating a **poor fit**.
+- **Adjusted R-squared**: After adjusting for the number of predictors, the explained variability drops slightly to **3.75%**.
+- **F-statistic**: The model as a whole is **statistically significant** (p-value = **0.01301**), meaning at least one predictor significantly impacts `Alcohol`.
+
+
+**8. Model Diagnostics**
+```{r}
+# Plot residuals vs fitted values to check homoscedasticity
+plot(model$fitted.values, residuals(model),
+     main = "Residuals vs Fitted Values",
+     xlab = "Fitted Values",
+     ylab = "Residuals")
+abline(h = 0, col = "red")
+
+# Q-Q plot to check normality of residuals
+qqnorm(residuals(model), main = "Q-Q Plot of Residuals")
+qqline(residuals(model), col = "red")
+```
+
+### Interpretation of the Plots:
+
+#### 1. Q-Q Plot of Residuals:
+- The points in the Q-Q plot generally follow the 45-degree reference line, except for some deviations at the tails (both ends).
+
+**Interpretation**:  
+- Residuals are approximately normally distributed, but there may be slight non-normality in the extreme values.  
+- This is not unusual, and unless the tails are heavily deviated, the normality assumption is reasonably satisfied.
+
+#### 2. Residuals vs. Fitted Values Plot:
+- The residuals appear randomly scattered around the horizontal line at zero.
+- There is no clear pattern or systematic structure (e.g., funnel shape or curvature).
+
+**Interpretation**:  
+- The assumption of homoscedasticity (constant variance of residuals) is met.  
+- No strong evidence of non-linearity, suggesting the model captures the relationship between predictors and `Alcohol` reasonably well.
+
+##Advanced Analysis
+
+**9. Principal Component Analysis (PCA)**
+
+```{r}
+# Select only numerical variables from the Wine dataset
+numerical_data <- wine[, -1]  # Exclude 'Class' column
+
+# Standardize the numerical data
+numerical_data_scaled <- scale(numerical_data)
+
+# Perform PCA
+pca_result <- prcomp(numerical_data_scaled, center = TRUE, scale. = TRUE)
+
+# View the summary of PCA to get the proportion of variance explained by each component
+summary(pca_result)
+
+# Plot the explained variance (scree plot)
+screeplot(pca_result, main = "Scree Plot for Wine Dataset", col = "blue", pch = 19)
+
+```
+
+###Interpretation of PCA Results and Scree Plot:
+
+####1. Proportion of Variance:
+
+- **PC1** accounts for **36.2%** of the variance, making it the most significant component. Together with 
+
+**PC2** (**19.21%**), the first two components explain **55.41%** of the total variance.
+
+- **PC3** explains an additional **11.12%**, bringing the cumulative explained variance to **66.53%**.
+
+- As we move to higher components, the proportion of variance explained decreases significantly. By **PC4**, the variance explained drops to **7.07%**, and after **PC5** and beyond, the contributions become minimal.
+
+#### 2. Cumulative Proportion:
+- By **PC4**, the cumulative proportion of variance explained reaches **73.6%**, which is already a substantial amount of the data's variability.
+- By **PC5**, it increases to **80.16%**, and by **PC6**, it accounts for **85.1%**. After this, the variance explained levels off, and higher components contribute less.
+
+#### 3. Scree Plot Interpretation:
+
+- The scree plot shows an **elbow point** at the **4th component**. This is where the explained variance starts to level off, suggesting that the first four components capture the most significant variance in the data.
+
+- After the **4th component**, the additional components explain very little variance.
+
+**10. PCA Interpretation**
+```{r}
+# Load necessary libraries
+library(ggfortify)
+library(ggplot2)
+
+# Select only numerical columns in the Wine dataset
+numerical_data <- wine[, -1]  # Exclude 'Class' column
+
+# Standardize the data
+numerical_data_scaled <- scale(numerical_data)
+
+# Perform PCA
+pca_result <- prcomp(numerical_data_scaled, center = TRUE, scale. = TRUE)
+
+# Create the PCA biplot using ggfortify
+autoplot(pca_result, 
+         data = wine,  # Use the Wine dataset for points
+         colour = 'Class',  # Colour points by the 'Class' variable (categorical)
+         loadings = TRUE, 
+         loadings.label = TRUE, 
+         loadings.label.size = 3) +
+  ggtitle("PCA Biplot for Wine Dataset") + 
+  theme_minimal()  # Apply minimal theme for the plot
+
+```
+
+### Conclusion: Univariate and Multivariate Analyses
+
+#### Univariate Analysis:
+
+The univariate analysis of the wine dataset focused on the alcohol content, providing the following insights:
+
+- **Alcohol Content**:  
+  - The mean alcohol content is **13.00%**, with a median of **13.05%**, suggesting a slight skew toward higher alcohol content.  
+  - The standard deviation is **0.81%**, indicating relatively low variability across the wines.  
+  - The alcohol levels range from **11.03%** to **14.83%**, showcasing a relatively narrow but significant range.  
+
+- **Distribution**:  
+  - The histogram revealed a nearly normal distribution of alcohol content, with most wines having alcohol levels between **12.5%** and **13.5%**, but with a slight skew toward higher values.  
+  - The boxplot confirmed the symmetry of the data, with no visible outliers, indicating moderate variability in alcohol content.
+
+- **Wine Classes**:  
+  - The bar plot of wine classes showed that **Class 2** wines are the most frequent, followed by **Class 1** and **Class 3** wines.  
+  - This suggests that Class 2 wines may be more commonly produced or represented in the dataset.
+
+#### Multivariate Analysis:
+
+In the multivariate analysis, we explored the relationships between different variables, with a focus on correlation analysis and regression:
+
+- **Correlation Analysis**:  
+  - The Pearson correlation coefficient between `Alcohol` and `Malic_Acid` was **0.094**, indicating a very weak positive correlation.  
+  - This suggests that alcohol content and malic acid levels are not strongly related in this dataset.
+
+- **Multiple Regression**:  
+  - A linear regression model predicting `Alcohol` using `Malic_Acid` and `Ash` was fit.  
+  - The results indicated that `Ash` has a **significant positive relationship** with alcohol content (p-value < **0.01**), while `Malic_Acid` did not show a statistically significant relationship (p-value = **0.41**).
+
+- **Principal Component Analysis (PCA)**:  
+  - PCA revealed that the first four principal components explain about **73.6%** of the variance in the dataset.  
+  - The scree plot showed an "elbow" at the **4th component**, suggesting that retaining the first four components is sufficient for dimensionality reduction.  
+  - This highlights that a few key components can represent much of the variance in the dataset.
+
+#### Insights:
+
+From both the univariate and multivariate analyses, we gained several insights:
+
+1. The alcohol content in the wine dataset is relatively consistent, with a slight skew toward higher alcohol levels, and there are no significant outliers in the distribution.  
+2. Malic acid and alcohol content do not show a strong relationship, as indicated by the weak correlation coefficient.  
+3. The multiple regression model suggests that `Ash` is a significant predictor of alcohol content, while `Malic_Acid` does not contribute much to the variation in alcohol content.  
+4. PCA highlighted that the dataset's variance can be captured by a small number of components, making dimensionality reduction possible without losing much information.  
+
+Overall, the analysis provides a clear understanding of the distribution of wine characteristics and their interrelationships, offering valuable insights into the factors influencing alcohol content in wines.
+
+
+## Dataset- diamonds
+
+##Univariate Analysis
+
+**1. Data Overview**
+
+```{r}
+# Load required package
+library(ggplot2)
+
+# Load the diamonds dataset
+data("diamonds")
+
+# Display structure
+str(diamonds)
+
+# Number of observations and variables
+nrow(diamonds) # Observations
+ncol(diamonds) # Variables
+```
+The diamonds dataset contains 53,940 observations (rows) and 10 variables (columns). This makes it a rich dataset for statistical and visual analysis, offering a variety of numerical and categorical data to explore.
+
+**2. Summary Statistics**
+
+```{r}
+# Summary statistics for the 'price' variable
+summary(diamonds$price)
+
+# Standard deviation of the 'price' variable
+sd(diamonds$price)
+```
+### Summary Statistics for the Price Variable in the Diamonds Dataset
+
+- **Minimum Price**: 326  
+- **Maximum Price**: 18,823  
+- **Median Price**: 2,401  
+  - The median price is significantly lower than the mean price (3,933), indicating a right-skewed distribution.  
+- **First Quartile (Q1)**: 950  
+- **Third Quartile (Q3)**: 5,324  
+  - The interquartile range of prices is given by:  
+    \[
+    \text{IQR} = Q3 - Q1 = 5324 - 950 = 4374
+    \]
+- **Standard Deviation**: 3,989.44  
+  - This reflects high variability in diamond prices.
+
+**3. Distribution Visualization**
+```{r}
+
+# Histogram for 'price'
+hist(diamonds$price, 
+     main = "Histogram of Diamond Prices", 
+     xlab = "Price", 
+     col = "lightblue", 
+     border = "black", 
+     breaks = 30)
+
+# Boxplot for 'price'
+boxplot(diamonds$price, 
+        main = "Boxplot of Diamond Prices", 
+        ylab = "Price", 
+        col = "lightgreen")
+```
+
+### Distribution of the Price Variable
+
+- **Histogram**:  
+  The histogram of the price variable reveals that most observations are concentrated at the lower end of the price range, indicating that a large number of diamonds are relatively inexpensive. This aligns with the right-skewed nature of the data, as observed in the summary statistics.
+
+- **Boxplot**:  
+  The boxplot further confirms this trend, showing a cluster of data points near the lower end, with a long whisker extending towards higher prices. Additionally, there are outliers with very low values (below the minimum whisker), representing a few diamonds priced much lower than the rest of the dataset.
+
+**4. Categorical Variable Analysis**
+
+```{r}
+# Bar plot for 'cut'
+barplot(table(diamonds$cut), 
+        main = "Distribution of Diamond Cut", 
+        xlab = "Cut", 
+        ylab = "Count", 
+        col = "lightcoral", 
+        border = "black")
+```
+
+### Analysis of the Cut Variable
+
+- **Bar Plot**:  
+  The bar plot of the cut variable reveals a steady increase in the number of diamonds across the different categories, with most diamonds falling into the "Ideal" and "Premium" cuts. This suggests that diamonds with these cut qualities are more commonly available in the market.  
+
+  On the other hand, there are relatively fewer diamonds with "Fair" and "good" cuts, which could imply that higher-quality cuts are more desirable and prevalent in the dataset. This trend may reflect consumer preferences for diamonds with better cuts, which could also correlate with higher pricing.
+
+##Multivariate Analysis
+
+**5. Correlation Analysis**
+```{r}
+# Calculate Pearson correlation coefficient between 'price' and 'carat'
+cor(diamonds$price, diamonds$carat)
+```
+### Correlation Between Price and Carat
+
+- **Pearson Correlation Coefficient**: 0.9216  
+  A Pearson correlation coefficient of 0.9216 between price and carat indicates a strong positive correlation. This means that as the weight of the diamond (carat) increases, its price tends to increase as well.  
+
+**6. Scatter Plot Visualization**
+```{r}
+# Scatter plot for 'price' vs. 'carat' with a trend line
+plot(diamonds$carat, diamonds$price, 
+     main = "Scatter Plot of Price vs Carat", 
+     xlab = "Carat", 
+     ylab = "Price", 
+     col = "blue", 
+     pch = 16)
+
+# Add a trend line (linear regression line)
+abline(lm(price ~ carat, data = diamonds), col = "red")
+```
+### Scatter Plot of Price vs. Carat
+
+- **Scatter Plot**:  
+  The scatter plot between price and carat shows a strong positive linear relationship. As the carat weight increases, the price of the diamond also increases, which is evident from the upward trend of the data points.  
+
+  The trend line (red) further reinforces this relationship, indicating that larger diamonds tend to be more expensive.
+
+**7. Multiple Regression**
+
+```{r}
+# Fit a linear regression model predicting 'price' based on 'carat', 'depth', and 'table'
+model <- lm(price ~ carat + depth + table, data = diamonds)
+
+# Display the summary of the regression model
+summary(model)
+```
+### Multiple Regression Analysis
+
+- **Model Summary**:  
+  The multiple regression model predicts price using **carat**, **depth**, and **table** as independent variables. The coefficients indicate the following:
+
+  - **Carat**:  
+    Carat has a strong positive effect on price, with a coefficient of 7858.77. This means that for each additional carat, the price increases by approximately 7858.77 units.
+
+  - **Depth**:  
+    Depth has a negative effect on price, with a coefficient of -151.24. As the depth increases, the price tends to decrease.
+
+  - **Table**:  
+    Table also has a negative effect on price, with a coefficient of -104.47. As the table size increases, the price tends to decrease.
+
+- **Model Performance**:  
+  The **Multiple R-squared** value of 0.8537 indicates that 85.37% of the variance in the price is explained by the model, which is quite strong.  
+
+  All predictors are statistically significant, with **p-values less than 0.001**.
+
+**8. Model Diagnostics**
+
+```{r}
+# Plot residuals to check for homoscedasticity and normality
+par(mfrow = c(2, 2)) # Set up a 2x2 plotting area
+
+# Residuals vs Fitted plot (check for homoscedasticity)
+plot(model, which = 1)
+
+# Normal Q-Q plot (check for normality of residuals)
+plot(model, which = 2)
+
+# Scale-Location plot (check for constant variance)
+plot(model, which = 3)
+
+# Residuals vs Leverage plot (check for influential data points)
+plot(model, which = 5)
+```
+### Diagnostic Plots for the Regression Model
+
+- **Homoscedasticity**:  
+  The residuals should ideally show a random scatter around zero across all fitted values (predicted prices). If there is any funnel shape or increasing/decreasing spread, it would indicate heteroscedasticity, suggesting that the variance of the errors is not constant.  
+
+  In such cases, potential model adjustments or transformations may be required to address the issue.
+
+- **Normality of Residuals**:  
+  A normal Q-Q plot is used to check if the residuals follow a straight line. Significant deviations of the points from the line would indicate that the residuals are not normally distributed.  
+
+  This could affect the validity of the regression coefficients and their significance, potentially necessitating remedial measures like transforming the dependent variable.
+
+
+## Advanced Analysis
+
+**9. Principal Component Analysis (PCA)**
+
+```{r}
+# Select only numerical variables from the Diamonds dataset
+numerical_data <- diamonds[, sapply(diamonds, is.numeric)]  # Select only numeric columns
+
+# Standardize the numerical data
+numerical_data_scaled <- scale(numerical_data)
+
+# Perform PCA on the standardized data
+pca_result <- prcomp(numerical_data_scaled, center = TRUE, scale. = TRUE)
+
+# View the summary of PCA to get the proportion of variance explained by each component
+summary(pca_result)
+
+# Plot the explained variance (Scree plot)
+screeplot(pca_result, main = "Scree Plot for Diamonds Dataset", col = "blue", pch = 19)
+
+```
+
+### Selection of Principal Components
+
+Based on the Scree plot and the given output, **3 principal components (PCs)** should be chosen. Here's the reasoning:
+
+- **Proportion of Variance** for the first three components:
+  - **PC1**: 68.06%
+  - **PC2**: 18.37%
+  - **PC3**: 9.87%  
+
+  These three components explain a total of **96.29%** of the variance in the dataset, meaning that selecting 3 components retains most of the information (almost 96% of the variance).
+
+- **Cumulative Proportion**:  
+  After the first three components, the cumulative variance explained is already at **96.29%**, and adding more components (e.g., PC4, PC5) contributes very little. For example:
+  - **PC4** explains only 2.48% of the variance.
+
+Thus, selecting 3 components strikes a balance between dimensionality reduction and retaining meaningful information.
+
+**10. PCA Interpretation**
+```{r}
+# Load necessary libraries
+library(ggfortify)
+library(ggplot2)
+
+# Select only numerical columns in the dataset (excluding any categorical columns like 'Class')
+numerical_data <- diamonds[, c("carat", "depth", "table")]  # Example columns for PCA
+
+# Standardize the data
+numerical_data_scaled <- scale(numerical_data)
+
+# Perform PCA
+pca_result <- prcomp(numerical_data_scaled, center = TRUE, scale. = TRUE)
+
+# Create the PCA biplot using ggfortify
+autoplot(pca_result, 
+         data = diamonds,  # Use the diamonds dataset for points
+         colour = 'cut',  # Colour points by the 'cut' variable (categorical)
+         loadings = TRUE, 
+         loadings.label = TRUE, 
+         loadings.label.size = 3) +
+  ggtitle("PCA Biplot for Diamonds Dataset") + 
+  theme_minimal()  # Apply minimal theme for the plot
+
+```
+
+###Conclusion
+
+####Univariate Analysis  
+From the univariate analysis, we gained valuable insights into the individual distributions and summary statistics of the variables in the dataset.  
+
+- **Continuous Variables**:  
+  The distribution of continuous variables such as **carat**, **depth**, and **table** was observed through histograms, which revealed their skewness and spread. Outliers were identified in certain variables, especially in **carat**, indicating that a small percentage of diamonds are significantly larger than the rest.  
+
+- **Summary Statistics**:  
+  Summary statistics showed that variables like **depth** and **table** have a relatively narrow range compared to **carat**, which is more widely distributed.
+
+#### Multivariate Analysis  
+
+Through the multivariate analysis, particularly **Principal Component Analysis (PCA)**, we were able to understand the relationships between multiple variables simultaneously.  
+
+- **Scree Plot**:  
+  The scree plot suggested that **three principal components (PC1, PC2, and PC3)** explain the majority of the variance in the dataset (**96.3%**). Based on the variance explained, three components were chosen as the optimal number for further analysis.
+
+- **PCA Biplot**:  
+  The PCA biplot revealed that the first two principal components (**PC1** and **PC2**) effectively captured the variability in the data.  
+  - **Loadings**: Carat and price contributed significantly to **PC1**, while depth and table influenced 
+
+**PC2**.
+  - **Visualization**: By visualizing the data points in the reduced dimensionality space, we observed distinct patterns among the different categories of the **cut** variable.
+
+#### Key Insights  
+
+- **Important Features**:  
+  **Carat** and **price** emerged as the most influential variables in determining the principal components, while attributes like **depth** and **table** played a smaller role.
+
+- **Patterns in Data**:  
+  The PCA visualization revealed clustering of diamonds based on their **cut** category, suggesting that the quality of the diamond (as indicated by cut) significantly affects its characteristics.
+
+- **Outliers and Variability**:  
+  The presence of outliers in the **carat** variable highlights the importance of considering these diamonds separately in any further analysis or modeling.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
